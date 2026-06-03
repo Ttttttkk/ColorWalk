@@ -216,7 +216,6 @@ h1 {
 .export-preview.palette-left,
 .export-preview.palette-right {
   width: min(640px, 100%);
-  aspect-ratio: 5 / 3;
   grid-template-columns: minmax(0, 4fr) minmax(0, 1fr);
   grid-template-areas: "photo palette";
   align-items: center;

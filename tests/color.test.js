@@ -14,6 +14,7 @@ const {
   getExportLayout,
   getContainedImageRect,
   getPaletteFit,
+  getPreviewSwatchSize,
 } = require('../app.js');
 
 test('rgbToHex converts rgb channels to uppercase hex', () => {
@@ -152,9 +153,15 @@ test('getPaletteFit fills the same vertical area for side palettes', () => {
 
   assert.ok(four.size > six.size);
   assert.ok(four.gap > six.gap);
-  assert.ok(four.size <= 42);
+  assert.ok(four.size <= 58);
   assert.equal(four.usedSpan, 600);
   assert.equal(six.usedSpan, 600);
+});
+
+test('getPreviewSwatchSize keeps side swatches comparable to bottom swatches', () => {
+  assert.equal(getPreviewSwatchSize(4), 58);
+  assert.equal(getPreviewSwatchSize(5), 54);
+  assert.equal(getPreviewSwatchSize(6), 50);
 });
 
 test('index.html cache busts stylesheet and script assets', () => {

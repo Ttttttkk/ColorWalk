@@ -157,7 +157,7 @@
     const gapRatio = safeCount <= 4 ? 0.22 : safeCount === 5 ? 0.16 : 0.1;
     const rawSize = span / (safeCount + (safeCount - 1) * gapRatio);
     const maxSize = vertical
-      ? safeCount <= 4 ? 42 : safeCount === 5 ? 36 : 32
+      ? safeCount <= 4 ? 58 : safeCount === 5 ? 54 : 50
       : safeCount <= 4 ? 64 : safeCount === 5 ? 58 : 52;
     const size = Math.min(cross, rawSize, maxSize);
     const gap = safeCount > 1 ? (span - size * safeCount) / (safeCount - 1) : 0;
@@ -167,6 +167,12 @@
       gap,
       usedSpan: size * safeCount + gap * (safeCount - 1),
     };
+  }
+
+  function getPreviewSwatchSize(count) {
+    if (count <= 4) return 58;
+    if (count === 5) return 54;
+    return 50;
   }
 
   function hexToRgb(hex) {
@@ -435,11 +441,8 @@
 
     const colors = selectPaletteColors(state.palette, state.settings.paletteCount);
     const ratio = state.image.naturalWidth / state.image.naturalHeight;
-    const sidePalette = state.settings.palettePosition === 'left' || state.settings.palettePosition === 'right';
     const previewGap = colors.length <= 4 ? 16 : colors.length === 5 ? 12 : 8;
-    const previewSwatchSize = sidePalette
-      ? colors.length <= 4 ? 38 : colors.length === 5 ? 34 : 30
-      : colors.length <= 4 ? 58 : colors.length === 5 ? 54 : 50;
+    const previewSwatchSize = getPreviewSwatchSize(colors.length);
     dom.exportPreview.className = [
       'export-preview',
       `frame-${state.settings.borderStyle}`,
@@ -588,6 +591,7 @@
       getExportLayout,
       getContainedImageRect,
       getPaletteFit,
+      getPreviewSwatchSize,
     };
   }
 }());
