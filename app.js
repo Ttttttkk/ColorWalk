@@ -126,8 +126,8 @@
       orientation: verticalPalette ? 'horizontal' : 'vertical',
       photoWidth,
       photoHeight,
-      paletteWidth: verticalPalette ? 160 : 0,
-      paletteHeight: verticalPalette ? 0 : 138,
+      paletteWidth: verticalPalette ? Math.round(photoWidth / 4) : 0,
+      paletteHeight: verticalPalette ? 0 : Math.round(photoHeight / 4),
     };
   }
 
@@ -156,7 +156,10 @@
     const safeCount = Math.max(1, count);
     const gapRatio = safeCount <= 4 ? 0.22 : safeCount === 5 ? 0.16 : 0.1;
     const rawSize = span / (safeCount + (safeCount - 1) * gapRatio);
-    const size = Math.min(cross, rawSize);
+    const maxSize = vertical
+      ? safeCount <= 4 ? 42 : safeCount === 5 ? 36 : 32
+      : safeCount <= 4 ? 64 : safeCount === 5 ? 58 : 52;
+    const size = Math.min(cross, rawSize, maxSize);
     const gap = safeCount > 1 ? (span - size * safeCount) / (safeCount - 1) : 0;
 
     return {
@@ -432,7 +435,11 @@
 
     const colors = selectPaletteColors(state.palette, state.settings.paletteCount);
     const ratio = state.image.naturalWidth / state.image.naturalHeight;
+    const sidePalette = state.settings.palettePosition === 'left' || state.settings.palettePosition === 'right';
     const previewGap = colors.length <= 4 ? 16 : colors.length === 5 ? 12 : 8;
+    const previewSwatchSize = sidePalette
+      ? colors.length <= 4 ? 38 : colors.length === 5 ? 34 : 30
+      : colors.length <= 4 ? 58 : colors.length === 5 ? 54 : 50;
     dom.exportPreview.className = [
       'export-preview',
       `frame-${state.settings.borderStyle}`,
@@ -444,6 +451,7 @@
     dom.exportPreview.style.setProperty('--photo-ratio', String(ratio));
     dom.exportPreview.style.setProperty('--palette-count', String(colors.length));
     dom.exportPreview.style.setProperty('--palette-gap', `${previewGap}px`);
+    dom.exportPreview.style.setProperty('--swatch-size', `${previewSwatchSize}px`);
 
     const photo = document.createElement('img');
     photo.className = 'export-photo';

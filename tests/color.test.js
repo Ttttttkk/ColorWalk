@@ -100,7 +100,20 @@ test('getExportLayout uses side dimensions when palette is vertical', () => {
   }, { width: 1200, height: 900 });
 
   assert.equal(layout.orientation, 'horizontal');
-  assert.ok(layout.paletteWidth > 0);
+  assert.equal(layout.paletteWidth, 300);
+});
+
+test('getExportLayout uses 8 to 2 photo and palette ratio', () => {
+  const side = getExportLayout({
+    borderStyle: 'side',
+    borderSize: 'medium',
+    palettePosition: 'right',
+    showHex: false,
+  }, { width: 1200, height: 900 });
+  const bottom = getExportLayout(createDefaultState().settings, { width: 1200, height: 900 });
+
+  assert.equal(side.photoWidth / side.paletteWidth, 4);
+  assert.equal(bottom.photoHeight / bottom.paletteHeight, 4);
 });
 
 test('getExportLayout preserves uploaded image aspect ratio', () => {
@@ -126,6 +139,7 @@ test('getPaletteFit fills the same horizontal area for different palette counts'
 
   assert.ok(four.size > six.size);
   assert.ok(four.gap > six.gap);
+  assert.ok(four.size <= 64);
   assert.equal(four.usedSpan, 600);
   assert.equal(six.usedSpan, 600);
 });
@@ -136,6 +150,7 @@ test('getPaletteFit fills the same vertical area for side palettes', () => {
 
   assert.ok(four.size > six.size);
   assert.ok(four.gap > six.gap);
+  assert.ok(four.size <= 42);
   assert.equal(four.usedSpan, 600);
   assert.equal(six.usedSpan, 600);
 });

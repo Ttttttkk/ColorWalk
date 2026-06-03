@@ -201,6 +201,7 @@ h1 {
   --photo-ratio: 4 / 5;
   --palette-count: 5;
   --palette-gap: 12px;
+  --swatch-size: 54px;
 }
 
 .export-preview.border-small {
@@ -214,14 +215,14 @@ h1 {
 .export-preview.frame-side,
 .export-preview.palette-left,
 .export-preview.palette-right {
-  width: min(560px, 100%);
-  grid-template-columns: 1fr 110px;
+  width: min(640px, 100%);
+  grid-template-columns: minmax(0, 4fr) minmax(0, 1fr);
   align-items: center;
   padding-bottom: 28px;
 }
 
 .export-preview.palette-left {
-  grid-template-columns: 110px 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 4fr);
 }
 
 .export-preview.palette-left .export-photo {
@@ -246,31 +247,35 @@ h1 {
 }
 
 .export-palette {
-  display: grid;
-  grid-template-columns: repeat(var(--palette-count), minmax(0, 1fr));
-  gap: var(--palette-gap);
+  display: flex;
+  justify-content: space-between;
   align-items: center;
+  gap: var(--palette-gap);
+  min-height: calc(var(--swatch-size) + 14px);
 }
 
 .export-preview.palette-left .export-palette,
 .export-preview.palette-right .export-palette,
 .export-preview.frame-side .export-palette {
-  grid-template-columns: 1fr;
-  grid-template-rows: repeat(var(--palette-count), minmax(0, 1fr));
+  flex-direction: column;
   height: 100%;
+  min-height: 100%;
   justify-items: center;
 }
 
 .export-color {
-  display: grid;
-  justify-items: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   gap: 6px;
   min-width: 0;
 }
 
 .export-swatch {
   display: block;
-  width: 100%;
+  width: var(--swatch-size);
+  height: var(--swatch-size);
   aspect-ratio: 1;
   border-radius: 999px;
   box-shadow: inset 0 0 0 1px rgba(49, 43, 37, 0.09);
@@ -278,9 +283,8 @@ h1 {
 
 .export-preview.palette-left .export-swatch,
 .export-preview.palette-right .export-swatch {
-  height: 100%;
-  width: auto;
-  max-height: 74px;
+  width: var(--swatch-size);
+  height: var(--swatch-size);
 }
 
 .swatch-square .export-swatch {
@@ -423,15 +427,14 @@ h1 {
   .export-preview.palette-left .export-palette,
   .export-preview.palette-right .export-palette,
   .export-preview.frame-side .export-palette {
-    grid-template-columns: repeat(var(--palette-count), minmax(0, 1fr));
-    grid-template-rows: none;
+    flex-direction: row;
     height: auto;
+    min-height: calc(var(--swatch-size) + 14px);
   }
 
   .export-preview.palette-left .export-swatch,
   .export-preview.palette-right .export-swatch {
-    width: 100%;
-    height: auto;
-    max-height: none;
+    width: var(--swatch-size);
+    height: var(--swatch-size);
   }
 }
