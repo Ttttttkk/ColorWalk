@@ -216,22 +216,26 @@ h1 {
 .export-preview.palette-left,
 .export-preview.palette-right {
   width: min(640px, 100%);
+  aspect-ratio: 5 / 3;
   grid-template-columns: minmax(0, 4fr) minmax(0, 1fr);
+  grid-template-areas: "photo palette";
   align-items: center;
   padding-bottom: 28px;
 }
 
 .export-preview.palette-left {
   grid-template-columns: minmax(0, 1fr) minmax(0, 4fr);
+  grid-template-areas: "palette photo";
 }
 
+.export-preview.palette-right .export-photo,
 .export-preview.palette-left .export-photo {
-  grid-column: 2;
+  grid-area: photo;
 }
 
+.export-preview.palette-right .export-palette,
 .export-preview.palette-left .export-palette {
-  grid-column: 1;
-  grid-row: 1;
+  grid-area: palette;
 }
 
 .export-preview.frame-bottom {
@@ -258,8 +262,8 @@ h1 {
 .export-preview.palette-right .export-palette,
 .export-preview.frame-side .export-palette {
   flex-direction: column;
-  height: 100%;
-  min-height: 100%;
+  align-self: stretch;
+  min-height: 0;
   justify-items: center;
 }
 
@@ -285,6 +289,7 @@ h1 {
 .export-preview.palette-right .export-swatch {
   width: var(--swatch-size);
   height: var(--swatch-size);
+  flex: 0 0 auto;
 }
 
 .swatch-square .export-swatch {
@@ -415,13 +420,16 @@ h1 {
   .export-preview.palette-left,
   .export-preview.palette-right {
     width: min(100%, 390px);
+    aspect-ratio: auto;
     grid-template-columns: 1fr;
+    grid-template-areas: none;
   }
 
+  .export-preview.palette-right .export-photo,
   .export-preview.palette-left .export-photo,
+  .export-preview.palette-right .export-palette,
   .export-preview.palette-left .export-palette {
-    grid-column: auto;
-    grid-row: auto;
+    grid-area: auto;
   }
 
   .export-preview.palette-left .export-palette,

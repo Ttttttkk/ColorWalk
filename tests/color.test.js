@@ -1,5 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
 
 const {
   rgbToHex,
@@ -153,4 +155,11 @@ test('getPaletteFit fills the same vertical area for side palettes', () => {
   assert.ok(four.size <= 42);
   assert.equal(four.usedSpan, 600);
   assert.equal(six.usedSpan, 600);
+});
+
+test('index.html cache busts stylesheet and script assets', () => {
+  const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+
+  assert.match(html, /styles\.css\?v=20260603-side-ratio/);
+  assert.match(html, /app\.js\?v=20260603-side-ratio/);
 });
