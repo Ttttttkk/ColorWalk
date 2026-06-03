@@ -8,6 +8,7 @@ const {
   createDefaultState,
   selectPaletteColors,
   updateSetting,
+  getPalettePositionOptions,
   getExportLayout,
   getContainedImageRect,
   getPaletteFit,
@@ -53,7 +54,7 @@ test('extractPaletteFromPixels merges visually similar colors', () => {
 
 test('createDefaultState matches the approved output direction', () => {
   assert.deepEqual(createDefaultState().settings, {
-    borderStyle: 'polaroid',
+    borderStyle: 'bottom',
     borderSize: 'medium',
     palettePosition: 'bottom',
     swatchShape: 'circle',
@@ -75,6 +76,19 @@ test('updateSetting returns new state without mutating the previous state', () =
 
   assert.equal(state.settings.showHex, false);
   assert.equal(next.settings.showHex, true);
+});
+
+test('updateSetting removes invalid palette positions for each border style', () => {
+  const bottom = updateSetting(createDefaultState(), 'borderStyle', 'bottom');
+  const side = updateSetting(createDefaultState(), 'borderStyle', 'side');
+
+  assert.equal(bottom.settings.palettePosition, 'bottom');
+  assert.equal(side.settings.palettePosition, 'right');
+});
+
+test('getPalettePositionOptions only exposes valid positions for border style', () => {
+  assert.deepEqual(getPalettePositionOptions('bottom'), [['bottom', '下方']]);
+  assert.deepEqual(getPalettePositionOptions('side'), [['right', '右侧'], ['left', '左侧']]);
 });
 
 test('getExportLayout uses side dimensions when palette is vertical', () => {

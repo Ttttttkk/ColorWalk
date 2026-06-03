@@ -269,6 +269,7 @@ h1 {
 }
 
 .export-swatch {
+  display: block;
   width: 100%;
   aspect-ratio: 1;
   border-radius: 999px;
@@ -276,8 +277,7 @@ h1 {
 }
 
 .export-preview.palette-left .export-swatch,
-.export-preview.palette-right .export-swatch,
-.export-preview.frame-side .export-swatch {
+.export-preview.palette-right .export-swatch {
   height: 100%;
   width: auto;
   max-height: 74px;
@@ -429,8 +429,7 @@ h1 {
   }
 
   .export-preview.palette-left .export-swatch,
-  .export-preview.palette-right .export-swatch,
-  .export-preview.frame-side .export-swatch {
+  .export-preview.palette-right .export-swatch {
     width: 100%;
     height: auto;
     max-height: none;

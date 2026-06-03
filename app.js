@@ -5,6 +5,16 @@
     large: 48,
   };
 
+  const BORDER_OPTIONS = [
+    ['side', '侧边框'],
+    ['bottom', '下边框'],
+  ];
+
+  const PALETTE_POSITION_OPTIONS = {
+    bottom: [['bottom', '下方']],
+    side: [['right', '右侧'], ['left', '左侧']],
+  };
+
   const state = createDefaultState();
 
   function clampChannel(value) {
@@ -69,7 +79,7 @@
       imageName: '',
       palette: [],
       settings: {
-        borderStyle: 'polaroid',
+        borderStyle: 'bottom',
         borderSize: 'medium',
         palettePosition: 'bottom',
         swatchShape: 'circle',
@@ -84,25 +94,35 @@
   }
 
   function updateSetting(previousState, key, value) {
+    const settings = {
+      ...previousState.settings,
+      [key]: value,
+    };
+
+    if (key === 'borderStyle') {
+      settings.palettePosition = value === 'side' ? 'right' : 'bottom';
+    }
+
     return {
       ...previousState,
-      settings: {
-        ...previousState.settings,
-        [key]: value,
-      },
+      settings,
     };
+  }
+
+  function getPalettePositionOptions(borderStyle) {
+    return PALETTE_POSITION_OPTIONS[borderStyle] || PALETTE_POSITION_OPTIONS.bottom;
   }
 
   function getExportLayout(settings, imageSize = { width: 900, height: 1120 }) {
     const border = BORDER_SIZES[settings.borderSize] || BORDER_SIZES.medium;
     const verticalPalette = settings.palettePosition === 'left' || settings.palettePosition === 'right';
-    const polaroidBottom = settings.borderStyle === 'polaroid' ? border * 1.5 : border;
+    const bottomBorder = border;
     const photoWidth = Math.round(imageSize.width);
     const photoHeight = Math.round(imageSize.height);
 
     return {
       border,
-      polaroidBottom,
+      bottomBorder,
       orientation: verticalPalette ? 'horizontal' : 'vertical',
       photoWidth,
       photoHeight,
@@ -313,11 +333,7 @@
       {
         label: '边框样式',
         key: 'borderStyle',
-        options: [
-          ['polaroid', '拍立得'],
-          ['side', '侧边框'],
-          ['bottom', '下边框'],
-        ],
+        options: BORDER_OPTIONS,
       },
       {
         label: '白边大小',
@@ -331,11 +347,7 @@
       {
         label: '色卡位置',
         key: 'palettePosition',
-        options: [
-          ['bottom', '下方'],
-          ['right', '右侧'],
-          ['left', '左侧'],
-        ],
+        options: getPalettePositionOptions(state.settings.borderStyle),
       },
       {
         label: '色卡形状',
@@ -477,7 +489,7 @@
     const side = layout.orientation === 'horizontal';
 
     canvas.width = side ? photoWidth + layout.paletteWidth + layout.border * 2 : photoWidth + layout.border * 2;
-    canvas.height = side ? photoHeight + layout.border * 2 : photoHeight + layout.border + layout.paletteHeight + layout.polaroidBottom;
+    canvas.height = side ? photoHeight + layout.border * 2 : photoHeight + layout.border + layout.paletteHeight + layout.bottomBorder;
 
     const context = canvas.getContext('2d');
     context.fillStyle = '#FFFDF8';
@@ -564,6 +576,7 @@
       createDefaultState,
       selectPaletteColors,
       updateSetting,
+      getPalettePositionOptions,
       getExportLayout,
       getContainedImageRect,
       getPaletteFit,
