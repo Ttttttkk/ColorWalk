@@ -93,17 +93,56 @@
     };
   }
 
-  function getExportLayout(settings) {
+  function getExportLayout(settings, imageSize = { width: 900, height: 1120 }) {
     const border = BORDER_SIZES[settings.borderSize] || BORDER_SIZES.medium;
     const verticalPalette = settings.palettePosition === 'left' || settings.palettePosition === 'right';
     const polaroidBottom = settings.borderStyle === 'polaroid' ? border * 1.5 : border;
+    const photoWidth = Math.round(imageSize.width);
+    const photoHeight = Math.round(imageSize.height);
 
     return {
       border,
       polaroidBottom,
       orientation: verticalPalette ? 'horizontal' : 'vertical',
+      photoWidth,
+      photoHeight,
       paletteWidth: verticalPalette ? 160 : 0,
-      paletteHeight: verticalPalette ? 0 : 128,
+      paletteHeight: verticalPalette ? 0 : 138,
+    };
+  }
+
+  function getContainedImageRect(source, target) {
+    const sourceRatio = source.width / source.height;
+    const targetRatio = target.width / target.height;
+    let width = target.width;
+    let height = target.height;
+    let x = 0;
+    let y = 0;
+
+    if (sourceRatio > targetRatio) {
+      height = target.width / sourceRatio;
+      y = (target.height - height) / 2;
+    } else {
+      width = target.height * sourceRatio;
+      x = (target.width - width) / 2;
+    }
+
+    return { x, y, width, height };
+  }
+
+  function getPaletteFit({ width, height, count, vertical }) {
+    const span = vertical ? height : width;
+    const cross = vertical ? width : height;
+    const safeCount = Math.max(1, count);
+    const gapRatio = safeCount <= 4 ? 0.22 : safeCount === 5 ? 0.16 : 0.1;
+    const rawSize = span / (safeCount + (safeCount - 1) * gapRatio);
+    const size = Math.min(cross, rawSize);
+    const gap = safeCount > 1 ? (span - size * safeCount) / (safeCount - 1) : 0;
+
+    return {
+      size,
+      gap,
+      usedSpan: size * safeCount + gap * (safeCount - 1),
     };
   }
 
@@ -380,6 +419,8 @@
     if (!state.image) return;
 
     const colors = selectPaletteColors(state.palette, state.settings.paletteCount);
+    const ratio = state.image.naturalWidth / state.image.naturalHeight;
+    const previewGap = colors.length <= 4 ? 16 : colors.length === 5 ? 12 : 8;
     dom.exportPreview.className = [
       'export-preview',
       `frame-${state.settings.borderStyle}`,
@@ -388,6 +429,9 @@
       `swatch-${state.settings.swatchShape}`,
       state.settings.showHex ? 'show-hex' : '',
     ].join(' ');
+    dom.exportPreview.style.setProperty('--photo-ratio', String(ratio));
+    dom.exportPreview.style.setProperty('--palette-count', String(colors.length));
+    dom.exportPreview.style.setProperty('--palette-gap', `${previewGap}px`);
 
     const photo = document.createElement('img');
     photo.className = 'export-photo';
@@ -412,30 +456,24 @@
     dom.exportPreview.replaceChildren(photo, palette);
   }
 
-  function drawCoverImage(context, image, x, y, width, height) {
-    const sourceRatio = image.naturalWidth / image.naturalHeight;
-    const targetRatio = width / height;
-    let sourceWidth = image.naturalWidth;
-    let sourceHeight = image.naturalHeight;
-    let sourceX = 0;
-    let sourceY = 0;
-
-    if (sourceRatio > targetRatio) {
-      sourceWidth = image.naturalHeight * targetRatio;
-      sourceX = (image.naturalWidth - sourceWidth) / 2;
-    } else {
-      sourceHeight = image.naturalWidth / targetRatio;
-      sourceY = (image.naturalHeight - sourceHeight) / 2;
-    }
-
-    context.drawImage(image, sourceX, sourceY, sourceWidth, sourceHeight, x, y, width, height);
+  function drawContainedImage(context, image, x, y, width, height) {
+    const rect = getContainedImageRect(
+      { width: image.naturalWidth, height: image.naturalHeight },
+      { width, height },
+    );
+    context.drawImage(image, x + rect.x, y + rect.y, rect.width, rect.height);
   }
 
   function drawExportImage(canvas, image, palette, settings) {
-    const layout = getExportLayout(settings);
+    const maxPhotoSide = 1200;
+    const scale = Math.min(1, maxPhotoSide / Math.max(image.naturalWidth, image.naturalHeight));
+    const layout = getExportLayout(settings, {
+      width: image.naturalWidth * scale,
+      height: image.naturalHeight * scale,
+    });
     const colors = selectPaletteColors(palette, settings.paletteCount);
-    const photoWidth = 900;
-    const photoHeight = 1120;
+    const photoWidth = layout.photoWidth;
+    const photoHeight = layout.photoHeight;
     const side = layout.orientation === 'horizontal';
 
     canvas.width = side ? photoWidth + layout.paletteWidth + layout.border * 2 : photoWidth + layout.border * 2;
@@ -447,7 +485,7 @@
 
     const photoX = settings.palettePosition === 'left' ? layout.border + layout.paletteWidth : layout.border;
     const photoY = layout.border;
-    drawCoverImage(context, image, photoX, photoY, photoWidth, photoHeight);
+    drawContainedImage(context, image, photoX, photoY, photoWidth, photoHeight);
 
     const paletteX = settings.palettePosition === 'left'
       ? layout.border / 2
@@ -462,12 +500,18 @@
     context.textAlign = 'center';
     context.font = '24px Arial';
     const vertical = settings.palettePosition === 'left' || settings.palettePosition === 'right';
-    const gap = vertical ? 28 : 22;
-    const size = vertical ? 72 : 86;
+    const labelSpace = settings.showHex ? 38 : 0;
+    const fit = getPaletteFit({
+      width,
+      height: Math.max(1, height - labelSpace),
+      count: colors.length,
+      vertical,
+    });
+    const size = fit.size;
 
     colors.forEach((color, index) => {
-      const cx = vertical ? x + width / 2 : x + ((index + 0.5) * width) / colors.length;
-      const cy = vertical ? y + 92 + index * (size + gap) : y + 44;
+      const cx = vertical ? x + width / 2 : x + size / 2 + index * (size + fit.gap);
+      const cy = vertical ? y + size / 2 + index * (size + fit.gap) : y + size / 2;
       context.fillStyle = color;
 
       if (settings.swatchShape === 'circle') {
@@ -521,6 +565,8 @@
       selectPaletteColors,
       updateSetting,
       getExportLayout,
+      getContainedImageRect,
+      getPaletteFit,
     };
   }
 }());

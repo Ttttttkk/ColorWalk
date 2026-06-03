@@ -9,6 +9,8 @@ const {
   selectPaletteColors,
   updateSetting,
   getExportLayout,
+  getContainedImageRect,
+  getPaletteFit,
 } = require('../app.js');
 
 test('rgbToHex converts rgb channels to uppercase hex', () => {
@@ -81,8 +83,45 @@ test('getExportLayout uses side dimensions when palette is vertical', () => {
     borderSize: 'medium',
     palettePosition: 'right',
     showHex: true,
-  });
+  }, { width: 1200, height: 900 });
 
   assert.equal(layout.orientation, 'horizontal');
   assert.ok(layout.paletteWidth > 0);
+});
+
+test('getExportLayout preserves uploaded image aspect ratio', () => {
+  const landscape = getExportLayout(createDefaultState().settings, { width: 1200, height: 900 });
+  const portrait = getExportLayout(createDefaultState().settings, { width: 900, height: 1200 });
+
+  assert.equal(landscape.photoWidth, 1200);
+  assert.equal(landscape.photoHeight, 900);
+  assert.equal(portrait.photoWidth, 900);
+  assert.equal(portrait.photoHeight, 1200);
+});
+
+test('getContainedImageRect never crops the source image', () => {
+  assert.deepEqual(
+    getContainedImageRect({ width: 1200, height: 900 }, { width: 900, height: 900 }),
+    { x: 0, y: 112.5, width: 900, height: 675 },
+  );
+});
+
+test('getPaletteFit fills the same horizontal area for different palette counts', () => {
+  const four = getPaletteFit({ width: 600, height: 120, count: 4, vertical: false });
+  const six = getPaletteFit({ width: 600, height: 120, count: 6, vertical: false });
+
+  assert.ok(four.size > six.size);
+  assert.ok(four.gap > six.gap);
+  assert.equal(four.usedSpan, 600);
+  assert.equal(six.usedSpan, 600);
+});
+
+test('getPaletteFit fills the same vertical area for side palettes', () => {
+  const four = getPaletteFit({ width: 120, height: 600, count: 4, vertical: true });
+  const six = getPaletteFit({ width: 120, height: 600, count: 6, vertical: true });
+
+  assert.ok(four.size > six.size);
+  assert.ok(four.gap > six.gap);
+  assert.equal(four.usedSpan, 600);
+  assert.equal(six.usedSpan, 600);
 });
